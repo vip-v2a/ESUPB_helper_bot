@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 from telegram.ext import (
     Updater,
     CommandHandler,
@@ -8,7 +9,7 @@ from telegram.ext import (
     ConversationHandler
 )
 
-from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, ParseMode
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, ParseMode, replymarkup
 import logging
 import redis
 
@@ -17,21 +18,24 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
-BOT_TOKEN = os.environ['BOT_TOKEN']
-REDIS_HOST = os.environ['REDIS_HOST']
-REDIS_PORT = os.environ['REDIS_PORT']
-REDIS_PASSWORD = os.environ['REDIS_PASSWORD']
+load_dotenv()
+
+BOT_TOKEN = os.getenv('BOT_TOKEN')
+# REDIS_HOST = os.environ['REDIS_HOST']
+# REDIS_PORT = os.environ['REDIS_PORT']
+# REDIS_PASSWORD = os.environ['REDIS_PASSWORD']
 
 UP_MENU_TEXT = 'Предложить улучшение условий труда'
 DOWN_MENU_TEXT = 'Сообщить о рисках, несоответствиях, происшествиях'
 CANCEL_TEXT = 'Отмена'
 
 MENU_KEYBOARD = [
-    [UP_MENU_TEXT], 
+    [UP_MENU_TEXT],
     [DOWN_MENU_TEXT],
     [CANCEL_TEXT]
 ]
-SECRET, PERSONAL_DATA, FIO, IMPROVE, DANGER_TYPE, PLACE, DANGER, AWARED, PHOTO = range(9)
+SECRET, PERSONAL_DATA, FIO, IMPROVE, DANGER_TYPE, PLACE, DANGER, AWARED, PHOTO = range(
+    9)
 
 
 def start(update, context):
@@ -87,7 +91,7 @@ def ESUPB_helper(update, context):
 
     elif msg == DOWN_MENU_TEXT:
         reply_msg = "down text"
-    
+
     update.message.reply_text(reply_msg, reply_markup=reply_markup)
 
 
@@ -101,49 +105,76 @@ def improvement_cancel(update, context) -> int:
     user = update.message.from_user
     logger.info(f"User {user.first_name} canceled the improvement.")
     update.message.reply_text(
-        'Внесение предложения по улучшению условий и охраны труда отменено'
+        'Внесение предложения по улучшению условий и охраны труда отменено',
+        reply_markup=ReplyKeyboardRemove()
     )
     return ConversationHandler.END
+
 
 def improvement(update, context) -> int:
     """Starts improvements."""
     update.message.reply_text(
-        'Опишите предлагаемое улучшение:'
-    )    
+        'Опишите предлагаемое улучшение.\n'
+        'Чтобы отменить подачу улучшения, наберите команду /cancel'
+    )
     return FIO
 
 
 def personal_data_consent(update, context) -> int:
-    reply_keyboard = ["Да", "Нет"]
-    reply_markup = ReplyKeyboardMarkup(reply_keyboard, 
-        one_time_keyboard=True, resize_keyboard=True)
-    reply_text = """Вы согласны на обработку персональных данных согласно
-Федерального закона от 27.07.2006 №152-ФЗ 'О персональных данных'"""
-    update.message.reply_text(reply_text, reply_markup)
-    return FIO
+    context.user_data['FIO'] = update.message.text
+    reply_keyboard = [['Да', 'Нет']]
+    reply_markup = ReplyKeyboardMarkup(reply_keyboard,
+                                       one_time_keyboard=True,
+                                       resize_keyboard=True
+                                       )
+    reply_text = """Вы согласны на обработку персональных данных согласно\
+Федерального закона от 27.07.2006 №152-ФЗ 'О персональных данных'\n\n\
+Если Вы нажмете "Нет", предложенное улучшение отправится анонимно\n\n\
+Чтобы отменить подачу улучшения, наберите команду /cancel"""
+    update.message.reply_text(reply_text, reply_markup=reply_markup)
+    return IMPROVE
 
 
-def save_improvement(update, context) -> int:
-    message_text = update.message.text
-    reply_text = "Спасибо. Ваше предложение по улучшению условий и охраны \
-    труда принято в обработку.\n\n Укажите Ваши контактные данные \
-    Чтобы с Вами связаться "
-    update.reply_text(reply_text)
-    return ConversationHandler.END
-
-
-def FIO(update, context) -> int:
-    
+def type_FIO(update, context) -> int:
+    context.user_data['improvement'] = update.message.text
+    reply_text = f"""Спасибо. Ваше предложение по улучшению условий и охраны \
+труда принято в обработку.\n\n Укажите Ваши контактные данные, например: \
+Имя, газовый телефон, сотовый телефон или почту. \
+\n\nЧтобы отменить подачу улучшения, наберите команду /cancel"""
+    update.message.reply_text(reply_text)
     return PERSONAL_DATA
 
 
+def save_improvement(update, context) -> int:
+
+    consent = update.message.text
+
+    if not(consent == "Да" or consent == "Нет"):
+        return IMPROVE
+
+    if consent == "Нет":
+        context.user_data['FIO'] = "Инкогнито"
+
+    reply_text = (
+        f"{context.user_data['FIO']} "
+        f"({update.message.from_user.id}):\n"
+        f"{context.user_data['improvement']}"
+    )
+
+    del context.user_data['FIO']
+    del context.user_data['improvement']
+
+    update.message.reply_text(reply_text, reply_markup=ReplyKeyboardRemove())
+    return ConversationHandler.END
+
+
 def main():
-    """Start the bot."""
 
     # r.set('example', 'text')
     # example_text = r.get('example')
 
-    updater = Updater(BOT_TOKEN, defaults=Defaults(parse_mode="Markdown"), use_context=True, )
+    updater = Updater(BOT_TOKEN, defaults=Defaults(
+        parse_mode="Markdown"), use_context=True)
 
     dp = updater.dispatcher
 
@@ -153,8 +184,10 @@ def main():
     improve_handler = ConversationHandler(
         entry_points=[CommandHandler('improve', improvement)],
         states={
-            IMPROVE: [MessageHandler(Filters.text, save_improvement)]
-            # PERSONAL_DATA: [MessageHandler(Filters.text, save_improvement)],
+            FIO: [MessageHandler(Filters.text & ~Filters.command, type_FIO)],
+            PERSONAL_DATA: [MessageHandler(Filters.text & ~Filters.command, personal_data_consent)],
+            IMPROVE: [MessageHandler(
+                Filters.text & ~Filters.command, save_improvement)]
         },
         fallbacks=[CommandHandler('cancel', improvement_cancel)],
     )
@@ -169,9 +202,9 @@ def main():
 
 
 if __name__ == '__main__':
-    r = redis.Redis(
-        host=REDIS_HOST, 
-        port=REDIS_PORT,
-        password=REDIS_PASSWORD
-    )
+    # r = redis.Redis(
+    #     host=REDIS_HOST,
+    #     port=REDIS_PORT,
+    #     password=REDIS_PASSWORD
+    # )
     main()
