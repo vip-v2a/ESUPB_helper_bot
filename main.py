@@ -1,20 +1,15 @@
 import os
 from dotenv import load_dotenv
-from telegram.ext import (
-    Updater,
-    CommandHandler,
-    MessageHandler,
-    Filters,
-    Defaults,
-    ConversationHandler
-)
+from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
+                          Defaults, ConversationHandler)
 
-from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, ParseMode, replymarkup
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, ParseMode
 import logging
 import redis
 
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO)
 
 logger = logging.getLogger(__name__)
 
@@ -29,11 +24,7 @@ UP_MENU_TEXT = 'Предложить улучшение условий труд�
 DOWN_MENU_TEXT = 'Сообщить о рисках, несоответствиях, происшествиях'
 CANCEL_TEXT = 'Отмена'
 
-MENU_KEYBOARD = [
-    [UP_MENU_TEXT],
-    [DOWN_MENU_TEXT],
-    [CANCEL_TEXT]
-]
+MENU_KEYBOARD = [[UP_MENU_TEXT], [DOWN_MENU_TEXT], [CANCEL_TEXT]]
 SECRET, PERSONAL_DATA, FIO, IMPROVE, DANGER_TYPE, PLACE, DANGER, AWARED, PHOTO = range(
     9)
 
@@ -76,11 +67,9 @@ def ESUPB_helper(update, context):
     reply_markup = ReplyKeyboardRemove()
 
     if msg.lower() == "меню":
-        reply_markup = ReplyKeyboardMarkup(
-            MENU_KEYBOARD,
-            one_time_keyboard=False,
-            resize_keyboard=True
-        )
+        reply_markup = ReplyKeyboardMarkup(MENU_KEYBOARD,
+                                           one_time_keyboard=False,
+                                           resize_keyboard=True)
         reply_msg = 'Выберите пункт меню'
 
     elif msg == CANCEL_TEXT:
@@ -106,8 +95,7 @@ def improvement_cancel(update, context) -> int:
     logger.info(f"User {user.first_name} canceled the improvement.")
     update.message.reply_text(
         'Внесение предложения по улучшению условий и охраны труда отменено',
-        reply_markup=ReplyKeyboardRemove()
-    )
+        reply_markup=ReplyKeyboardRemove())
     return ConversationHandler.END
 
 
@@ -115,8 +103,7 @@ def improvement(update, context) -> int:
     """Starts improvements."""
     update.message.reply_text(
         'Опишите предлагаемое улучшение.\n'
-        'Чтобы отменить подачу улучшения, наберите команду /cancel'
-    )
+        'Чтобы отменить подачу улучшения, наберите команду /cancel')
     return FIO
 
 
@@ -125,8 +112,7 @@ def personal_data_consent(update, context) -> int:
     reply_keyboard = [['Да', 'Нет']]
     reply_markup = ReplyKeyboardMarkup(reply_keyboard,
                                        one_time_keyboard=True,
-                                       resize_keyboard=True
-                                       )
+                                       resize_keyboard=True)
     reply_text = """Вы согласны на обработку персональных данных согласно\
 Федерального закона от 27.07.2006 №152-ФЗ 'О персональных данных'\n\n\
 Если Вы нажмете "Нет", предложенное улучшение отправится анонимно\n\n\
@@ -149,17 +135,15 @@ def save_improvement(update, context) -> int:
 
     consent = update.message.text
 
-    if not(consent == "Да" or consent == "Нет"):
+    if not (consent == "Да" or consent == "Нет"):
         return IMPROVE
 
     if consent == "Нет":
         context.user_data['FIO'] = "Инкогнито"
 
-    reply_text = (
-        f"{context.user_data['FIO']} "
-        f"({update.message.from_user.id}):\n"
-        f"{context.user_data['improvement']}"
-    )
+    reply_text = (f"{context.user_data['FIO']} "
+                  f"({update.message.from_user.id}):\n"
+                  f"{context.user_data['improvement']}")
 
     del context.user_data['FIO']
     del context.user_data['improvement']
@@ -173,8 +157,9 @@ def main():
     # r.set('example', 'text')
     # example_text = r.get('example')
 
-    updater = Updater(BOT_TOKEN, defaults=Defaults(
-        parse_mode="Markdown"), use_context=True)
+    updater = Updater(BOT_TOKEN,
+                      defaults=Defaults(parse_mode="Markdown"),
+                      use_context=True)
 
     dp = updater.dispatcher
 
@@ -185,9 +170,14 @@ def main():
         entry_points=[CommandHandler('improve', improvement)],
         states={
             FIO: [MessageHandler(Filters.text & ~Filters.command, type_FIO)],
-            PERSONAL_DATA: [MessageHandler(Filters.text & ~Filters.command, personal_data_consent)],
-            IMPROVE: [MessageHandler(
-                Filters.text & ~Filters.command, save_improvement)]
+            PERSONAL_DATA: [
+                MessageHandler(Filters.text & ~Filters.command,
+                               personal_data_consent)
+            ],
+            IMPROVE: [
+                MessageHandler(Filters.text & ~Filters.command,
+                               save_improvement)
+            ]
         },
         fallbacks=[CommandHandler('cancel', improvement_cancel)],
     )
