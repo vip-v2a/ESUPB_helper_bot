@@ -1,6 +1,7 @@
 from telegram import ReplyKeyboardRemove, ReplyKeyboardMarkup
 from telegram.ext import ConversationHandler, CommandHandler, MessageHandler, Filters
 import logging
+from MyHandlers.db_handler import save_danger_to_db
 
 DANGER_TYPES = [
     "Охрана труда",
@@ -36,7 +37,7 @@ def accept_secret(update, context) -> int:
         "порочащих честь и достоинство работников и третьих лиц, для "
         "сведения личных счетов, достижения личных целей, получения "
         "выгоды, и хулиганских побуждений и в иных противоправных целях?"
-        "\n\nЧтобы отменить подачу сообщения, наберите команду /cancel"
+        "\n\nЧтобы отменить подачу сообщения, наберите команду /cancel."
     )
     update.message.reply_text(reply_text, reply_markup=reply_markup)
     return D_PERSONAL_DATA
@@ -57,7 +58,7 @@ def accept_personal_data(update, context) -> int:
         "Вы согласны на обработку персональных данных согласно "
         "Федерального закона от 27.07.2006 №152-ФЗ 'О персональных "
         "данных'\n\nЕсли Вы нажмете 'Нет', сообщение отправится анонимно"
-        "\n\nЧтобы отменить подачу сообщения, наберите команду /cancel"
+        "\n\nЧтобы отменить подачу сообщения, наберите команду /cancel."
     )
 
     update.message.reply_text(reply_text, reply_markup=reply_markup)
@@ -72,11 +73,11 @@ def typed_FIO(update, context) -> int:
     reply_text_yes = (
         "Укажите данные для обратной связи (ФИО, контактный телефон, "
         "адрес электронной почты)"
-        "\n\nЧтобы отменить подачу сообщения, наберите команду /cancel"
+        "\n\nЧтобы отменить подачу сообщения, наберите команду /cancel."
     )
     reply_text_no = (
         "Ваше сообщение будет отправлено анонимно. Нажмите кнопку «ОК»."
-        "\n\nЧтобы отменить подачу сообщения, наберите команду /cancel"
+        "\n\nЧтобы отменить подачу сообщения, наберите команду /cancel."
     )
     
     if msg_text == "Нет":
@@ -154,7 +155,7 @@ def awared_people(update, context) -> int:
     reply_text = (
         "Укажите данные работников (ФИО, должность), "
         "осведомленных о риске, несоответствии, происшествии."
-        "\n\nЧтобы отменить подачу сообщения, наберите команду /cancel"
+        "\n\nЧтобы отменить подачу сообщения, наберите команду /cancel."
     )
     update.message.reply_text(reply_text)
     return SAVING
@@ -162,15 +163,13 @@ def awared_people(update, context) -> int:
 
 def save_danger(update, context) -> int:
     awared = update.message.text
+    user_id = update.message.from_user.id
     context.user_data["awared"] = awared
-    save_danger_to_db(context.user_data)
+    save_danger_to_db(user_id, context.user_data)
+    context.user_data.clear()
+
     reply_text = (
         "Ваше обращение принято в обработку. Спасибо."
-        f'\n{context.user_data["contacts"]}'
-        f'\n{context.user_data["danger_type"]}'
-        f'\n{context.user_data["place"]}'
-        f'\n{context.user_data["danger"]}'
-        f'\n{context.user_data["awared"]}'
     )
     update.message.reply_text(reply_text)
 
@@ -183,13 +182,9 @@ def danger_cancel(update, context) -> int:
     logger.info(f"User {user.first_name} canceled the danger.")
     context.user_data.clear()
     update.message.reply_text(
-        'Подача сообщения о рисках, несоответствиях, происшествиях отменено',
+        'Подача сообщения о рисках, несоответствиях, происшествиях отменена',
         reply_markup=ReplyKeyboardRemove())
     return ConversationHandler.END
-
-
-def save_danger_to_db(danger:dict):
-    pass
 
 
 danger_handler = ConversationHandler(

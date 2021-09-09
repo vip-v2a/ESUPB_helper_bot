@@ -5,12 +5,12 @@ from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
 
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, ParseMode
 import logging
-import redis
 from MyHandlers import improve_handler, danger_handler
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO)
+    level=logging.INFO
+)
 
 logger = logging.getLogger(__name__)
 
@@ -20,51 +20,52 @@ BOT_TOKEN = os.getenv('BOT_TOKEN')
 
 
 def start(update, context):
-    """Send a message when the command /start is issued."""
-    example_text = """\
- Здравствуйте!\nЯ - *Электронный консультант по вопросам ЕСУПБ*.\n\
-С радостью отвечу на Ваши вопросы.\n
-Чтобы получить дополнительную информацию о боте, наберите команду /help"""
+    example_text = (
+        "Здравствуйте!\nЯ - *Электронный консультант по вопросам ЕСУПБ*.\n"
+        "С радостью отвечу на Ваши вопросы, связанные с ЕСУПБ.\n"
+        "\nЧтобы получить дополнительную информацию о боте, наберите "
+        "команду /help."
+    )
     update.message.reply_text(example_text)
 
 
 def help(update, context):
-    """Send a message when the command /help is issued."""
-    help_text = """*Дополнительная информация:*\n\n\
-Чтобы предложить улучшение условий и охраны труда, наберите команду /improve\n\
-Чтобы сообщить о рисках, несоответствиях, происшествиях, наберите команду /danger\n\n\
-Бот отвечает на вопросы по темам:\n\
-- Ключевые правила безопасности ПАО «Газпром»;\n\
-- термины и определения ЕСУПБ;\n\
-- Политика ПАО «Газпром»\n\
-- основные положения СТО Газпром 18000.1-001-2021;\n\
-- основы промышленной безопасности А.1;\n\
-- информационный лист для работника Очерского ЛПУМГ о ЕСУПБ;\n\
-- памятка о правилах поведения работников при встрече с дикими животными;\n\
-- памятка работнику по пожарной безопасности;\n\
-- газоопасные работы;\n\
-- положение о культуре производства;\n\
-- кодекс корпоративной этики"""
+    help_text = (
+        "*Дополнительная информация:*\n\n"
+        "Чтобы предложить улучшение условий и охраны труда, наберите "
+        "команду /improve.\n"
+        "Чтобы сообщить о рисках, несоответствиях, происшествиях, "
+        "наберите команду /danger.\n\n"
+        "Бот отвечает на вопросы по темам:\n"
+        " - Ключевые правила безопасности ПАО «Газпром»;\n"
+        " - термины и определения ЕСУПБ;\n"
+        " - Политика ПАО «Газпром»\n"
+        " - основные положения СТО Газпром 18000.1-001-2021;\n"
+        " - основы промышленной безопасности А.1;\n"
+        " - информационный лист для работника Очерского ЛПУМГ о ЕСУПБ;\n"
+        " - памятка о правилах поведения работников при встрече с дикими "
+        "животными;\n"
+        " - памятка работнику по пожарной безопасности;\n"
+        " - газоопасные работы;\n"
+        " - положение о культуре производства;\n"
+        " - кодекс корпоративной этики"
+    )
     update.message.reply_text(help_text)
 
 
 def ESUPB_helper(update, context):
-    """ESUPB_helper"""
-
-    reply_msg = 'Единая система управления производственной безопасностью (ЕСУПБ) - комплекс организационных и технических мероприятий, выполняемых для обеспечения производственной безопасности.'
+    reply_msg = (
+        "Ответ для тестирования"
+    )
 
     update.message.reply_text(reply_msg)
 
 
 def error(update, error):
-    """Log Errors caused by Updates."""
-    logger.warning('Update "%s" caused error "%s"', update, error)
+    logger.warning(f'Update "{update}" caused error "{error}"')
 
 
 def main():
-
-    # r.set('example', 'text')
-    # example_text = r.get('example')
 
     updater = Updater(BOT_TOKEN,
                       defaults=Defaults(parse_mode="Markdown"),
@@ -86,9 +87,4 @@ def main():
 
 
 if __name__ == '__main__':
-    # r = redis.Redis(
-    #     host=REDIS_HOST,
-    #     port=REDIS_PORT,
-    #     password=REDIS_PASSWORD
-    # )
     main()
