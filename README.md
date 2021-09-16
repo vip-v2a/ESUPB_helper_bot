@@ -35,6 +35,9 @@ pip install -r requirements.txt
 ```
 
 
+[First step: Create a project in Google Cloud Console](https://cloud.google.com/dialogflow/es/docs/quick/setup?authuser=1)
+[Second step: Create an agent in Dialogflow ES Console](https://dialogflow.cloud.google.com/?authuser=1#/getStarted)
+
 ### Create JSON KEY
 
 Create a service account:

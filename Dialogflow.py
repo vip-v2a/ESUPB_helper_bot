@@ -1,10 +1,11 @@
+import json
 import os
 from google.cloud import storage
 from google.cloud import dialogflow
 import logging
 
 PRJ_ID = os.getenv("PRJ_ID")
-TELEGRAM_ID = os.getenv("TELEGRAM_ID")
+# TELEGRAM_ID = os.getenv("TELEGRAM_ID")
 LANGUAGE_CODE = "ru"
 
 logging.basicConfig(
@@ -65,7 +66,14 @@ def create_intent(
         training_phrase = dialogflow.Intent.TrainingPhrase(parts=[part])
         training_phrases.append(training_phrase)
 
-    text = dialogflow.Intent.Message.Text(text=message_texts)
+
+    # messages = []
+    # for msg_text in message_texts:
+    #     text = dialogflow.Intent.Message.Text(text=(msg_text,))
+    #     message = dialogflow.Intent.Message(text=text)
+    #     messages.append(message)
+
+    text = dialogflow.Intent.Message.Text(text=tuple(message_texts))
     message = dialogflow.Intent.Message(text=text)
 
     intent = dialogflow.Intent(
@@ -92,21 +100,22 @@ def train_agent(project_id):
     logging.info(f"Обучение выполнено: {response.done()}")
 
 
-import json
-from Dialogflow import create_intent, PRJ_ID, train_agent
+def main():
+    with open("qa_dataset\qa_base.json", "r", encoding='utf-8') as my_file:
+        questions = json.load(my_file)
 
-with open("questions.json", "r") as my_file:
-    questions = json.load(my_file)
+    intent_display_names = list(questions.keys())
 
-intent_display_names = list(questions.keys())
+    for intent_name in intent_display_names:
+        intent_questions = questions[intent_name]["questions"]
+        intent_answer = questions[intent_name]["answer"]
+        create_intent(
+            PRJ_ID,
+            intent_name,
+            intent_questions,
+            intent_answer
+        )
+        train_agent(PRJ_ID)
 
-for intent_name in intent_display_names:
-    intent_questions = questions[intent_name]["questions"]
-    intent_answer = questions[intent_name]["answer"]
-    create_intent(
-        PRJ_ID,
-        intent_name,
-        intent_questions,
-        (intent_answer,)
-    )
-    train_agent(PRJ_ID)
+if __name__=="__main__":
+    main()
