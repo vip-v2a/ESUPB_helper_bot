@@ -6,6 +6,7 @@ from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, ParseMode
 import logging
 from MyHandlers import improve_handler, danger_handler
+from Dialogflow import detect_intent_texts
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -54,11 +55,15 @@ def help(update, context):
 
 
 def ESUPB_helper(update, context):
-    reply_msg = (
-        "Ответ для тестирования"
+    text = update.message.text
+    user_id = update.message.from_user.id
+    
+    answer, intent_name, confidence, is_fallback = detect_intent_texts(
+        session_id=user_id,
+        text=text,
     )
 
-    update.message.reply_text(reply_msg)
+    update.message.reply_text(answer)
 
 
 def error(update, error):

@@ -24,7 +24,7 @@ def explicit():
     logging.info(buckets)
 
 
-def detect_intent_texts(project_id, session_id, text, language_code):
+def detect_intent_texts(session_id, text, project_id=PRJ_ID, language_code=LANGUAGE_CODE):
 
     session_client = dialogflow.SessionsClient()
     session = session_client.session_path(project_id, session_id)
