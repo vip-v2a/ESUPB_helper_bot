@@ -4,3 +4,5 @@ google-cloud==0.34.0
 google-cloud-storage==1.38.0
 dialogflow==1.1.0
 google-cloud-dialogflow==2.4.0
+python-telegram-bot==13.7
+redis==3.5.3
