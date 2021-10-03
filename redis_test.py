@@ -31,11 +31,12 @@ r = redis.Redis(
 # print(r.hkeys(b'824177756'))
 # print(r.hkeys(b'265392956'))
 
-print(json.loads(r.hget('265392956', '8')))
+# print(json.loads(r.hget('265392956', '8')))
 # print(json.loads(r.hget('265392956', '9')))
-# print(json.loads(r.hget('824177756', '3')))
+print(json.loads(r.hget('824177756', '15')))
 # print(r.get('danger_counter'))
 # print(r.hkeys('my_id3'))
+
 # print(json.loads(r.hget('my_id3', ckey)))
 
 

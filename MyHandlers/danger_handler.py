@@ -1,8 +1,11 @@
-import os
+import os, json
+from typing import Text
 from dotenv import load_dotenv
 from telegram import ReplyKeyboardRemove, ReplyKeyboardMarkup
 from telegram.ext import ConversationHandler, CommandHandler, MessageHandler, Filters
 import logging
+
+from telegram.ext.callbackcontext import CallbackContext
 from MyHandlers.db_handler import save_danger_to_db
 
 ADMIN1_ID = os.environ["ADMIN1"]
@@ -167,24 +170,21 @@ def awared_people(update, context) -> int:
     return SAVING
 
 
-def save_danger(update, context) -> int:
+def save_danger(update, context:CallbackContext) -> int:
     awared = update.message.text
     user_id = update.message.from_user.id
     context.user_data["awared"] = awared
     save_danger_to_db(user_id, context.user_data)
-    context.bot.send_message(
-            chat_id=ADMIN2_ID,
-            text=str(context.user_data)
-            )
-    context.bot.send_message(
-                chat_id=ADMIN1_ID,
-                text=str(context.user_data)
-                )
+    admin_text = "; ".join(context.user_data.values())
+    logger.info(admin_text)
+    context.bot.send_message(chat_id=ADMIN2_ID, text=admin_text)
+    context.bot.send_message(chat_id=ADMIN1_ID, text=admin_text)
     context.user_data.clear()
-
+    
     reply_text = (
         "Ваше обращение принято в обработку. Спасибо."
     )
+    
     update.message.reply_text(reply_text)
 
     return ConversationHandler.END
