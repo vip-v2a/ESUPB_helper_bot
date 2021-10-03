@@ -1,7 +1,12 @@
+import os
+from dotenv import load_dotenv
 import logging
 from telegram import ReplyKeyboardRemove, ReplyKeyboardMarkup
 from telegram.ext import ConversationHandler, CommandHandler, MessageHandler, Filters
 from MyHandlers.db_handler import save_improvement_to_db
+
+ADMIN1_ID = os.environ["ADMIN1"]
+ADMIN2_ID = os.environ["ADMIN2"]
 
 CONTACTS, SAVE, PERSONAL_DATA = range(3)
 
@@ -65,6 +70,14 @@ def type_contacts(update, context) -> int:
         context.user_data['contacts'] = "Unknown"
         user_id = update.message.from_user.id
         save_improvement_to_db(user_id, context.user_data)
+        context.bot.send_message(
+                    chat_id=ADMIN2_ID,
+                    text=str(context.user_data)
+                    )
+        context.bot.send_message(
+                    chat_id=ADMIN1_ID,
+                    text=str(context.user_data)
+                    )                     
         context.user_data.clear()
 
         reply_text = (
@@ -82,6 +95,14 @@ def save_improvement(update, context) -> int:
     context.user_data['contacts'] = update.message.text
     user_id = update.message.from_user.id
     save_improvement_to_db(user_id, context.user_data)
+    context.bot.send_message(
+                chat_id=ADMIN2_ID,
+                text=str(context.user_data)
+                )
+    context.bot.send_message(
+                chat_id=ADMIN1_ID,
+                text=str(context.user_data)
+                )                     
     context.user_data.clear()
 
     reply_text = (

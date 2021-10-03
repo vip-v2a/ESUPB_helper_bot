@@ -2,6 +2,7 @@ from telegram import ReplyKeyboardRemove, ReplyKeyboardMarkup
 from telegram.ext import ConversationHandler, CommandHandler, MessageHandler, Filters
 import logging
 from MyHandlers.db_handler import save_danger_to_db
+from MyHandlers.improve_handler import ADMIN2_ID, ADMIN1_ID
 
 DANGER_TYPES = [
     "Охрана труда",
@@ -166,6 +167,14 @@ def save_danger(update, context) -> int:
     user_id = update.message.from_user.id
     context.user_data["awared"] = awared
     save_danger_to_db(user_id, context.user_data)
+    context.bot.send_message(
+            chat_id=ADMIN2_ID,
+            text=str(context.user_data)
+            )
+    context.bot.send_message(
+                chat_id=ADMIN1_ID,
+                text=str(context.user_data)
+                )
     context.user_data.clear()
 
     reply_text = (

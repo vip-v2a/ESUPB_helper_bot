@@ -25,11 +25,14 @@ r = redis.Redis(
 # ckey = r.get('counter')
 # r.hset("my_id3", ckey, json.dumps(data))
 
-print(r.keys())
+# print(r.keys())
+# for key in r.keys():
+#     print(r.hkeys(key))
+# print(r.hkeys(b'824177756'))
+# print(r.hkeys(b'265392956'))
 
-# print(r.hkeys('824177756'))
-# print(json.loads(r.hget('824177756', '1')))
-# print(json.loads(r.hget('824177756', '2')))
+print(json.loads(r.hget('265392956', '8')))
+# print(json.loads(r.hget('265392956', '9')))
 # print(json.loads(r.hget('824177756', '3')))
 # print(r.get('danger_counter'))
 # print(r.hkeys('my_id3'))
