@@ -1,8 +1,13 @@
+import os
+from dotenv import load_dotenv
 from telegram import ReplyKeyboardRemove, ReplyKeyboardMarkup
 from telegram.ext import ConversationHandler, CommandHandler, MessageHandler, Filters
 import logging
 from MyHandlers.db_handler import save_danger_to_db
-from MyHandlers.improve_handler import ADMIN2_ID, ADMIN1_ID
+
+ADMIN1_ID = os.environ["ADMIN1"]
+ADMIN2_ID = os.environ["ADMIN2"]
+
 
 DANGER_TYPES = [
     "Охрана труда",
